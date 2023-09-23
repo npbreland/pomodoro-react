@@ -1,94 +1,101 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+'use client';
+import { useState, useRef } from 'react';
 
 export default function Home() {
+
+  const stages = [
+      {
+          'name': 'Work 1/4',
+          'duration': 25 * 60
+      },
+      {
+          'name': 'Short Break 1/3',
+          'duration': 5 * 60
+      },
+      {
+          'name': 'Work 2/4',
+          'duration': 25 * 60
+      },
+      {
+          'name': 'Short Break 2/3',
+          'duration': 5 * 60
+      },
+      {
+          'name': 'Work 3/4',
+          'duration': 25 * 60
+      },
+      {
+          'name': 'Short Break 3/3',
+          'duration': 5 * 60
+      },
+      {
+          'name': 'Work 4/4',
+          'duration': 25 * 60
+      },
+      {
+          'name': 'Long Break',
+          'duration': 15 * 60
+      },
+  ]
+
+  const [ currentStage, setCurrentStage ] = useState(0)
+  const [ timeLeft, setTimeLeft ] = useState(stages[0].duration)
+  const [ isPaused, setIsPaused ] = useState(true)
+  const intervalRef = useRef(null);
+
+  const pause = () => {
+    setIsPaused(true)
+    clearInterval(intervalRef.current)
+    intervalRef.current = null
+  }
+
+  const play = () => {
+    if (intervalRef.current) {
+      return
+    }
+    setIsPaused(false)
+    intervalRef.current = setInterval(() => {
+      setTimeLeft(timeLeft => timeLeft - 1);
+      if (timeLeft === 0) {
+          advanceStage()
+      }
+    }, 1000)
+  }
+
+  const advanceStage = () => {
+      const nextStage = (currentStage + 1) % stages.length 
+      setCurrentStage(nextStage);
+      setTimeLeft(stages[nextStage].duration);
+  }
+
+  const restartStage = () => {
+    pause()
+    setTimeLeft(stages[currentStage].duration);
+  }
+
+  const restartSession = () => {
+    pause()
+    setCurrentStage(0);
+    setTimeLeft(stages[0].duration);
+  }
+
+  const minutes = Math.floor(timeLeft / 60)
+  const seconds = timeLeft % 60
+  const timeLeftStr = `${minutes}:${seconds.toString().padStart(2, '0')}`
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.js</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore the Next.js 13 playground.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+    <main>
+      <h1>Pomodoro Timer</h1>
+      <div id="time-left">{timeLeftStr}</div>
+      <div>{stages[currentStage].name}</div>
+      { isPaused ?
+        <button onClick={() => play()} className="play-pause-toggle">Play</button>
+        : <button onClick={() => pause()} className="play-pause-toggle">Pause</button>
+      }
+      <div className="buttons-row-2">
+          <button onClick={() => advanceStage()}>Next<br/>stage</button>
+          <button onClick={() => restartStage()}>Restart<br/>stage</button>
+          <button onClick={() => restartSession()}>Restart session</button>
       </div>
     </main>
   )
